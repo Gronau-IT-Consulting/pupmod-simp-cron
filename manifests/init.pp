@@ -11,6 +11,16 @@ class cron (
   Array[String] $users            = []
 ) {
 
+  if $facts['os']['name'] in ['RedHat','CentOS'] {
+    $_cron_service = 'crond'
+  }
+  elsif $facts['os']['name'] in ['Debian','Ubuntu'] {
+    $_cron_service = 'cron'
+  }
+  else {
+    fail("OS '${facts['os']['name']}' not supported by '${module_name}'")
+  }
+
   $users.each |String $user| {
     cron::user { $user: }
   }
@@ -35,7 +45,7 @@ class cron (
   }
 
   # CCE-27070-2
-  service { 'crond':
+  service { $_cron_service:
     ensure     => 'running',
     enable     => true,
     hasstatus  => true,
